@@ -4,6 +4,7 @@
   "description": "This template should help get you started developing with Tauri in vanilla HTML, CSS and Javascript.",
   "main": "index.js",
   "scripts": {
+    "tauri": "tauri",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
