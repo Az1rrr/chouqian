@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>抽签程序</title>
+<style>
+  :root {
+    --bg: #0f0f1a;
+    --card: #1a1a2e;
+    --border: #2a2a4a;
+    --text: #e0e0e0;
+    --muted: #8888aa;
+    --accent: #e94560;
+    --accent2: #533483;
+    --gold: #f0c040;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-image:
+      radial-gradient(ellipse at 20% 50%, rgba(233, 68, 96, 0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 50%, rgba(83, 52, 131, 0.08) 0%, transparent 50%);
+  }
+
+  .container {
+    width: 100%;
+    max-width: 600px;
+    padding: 24px;
+  }
+
+  h1 {
+    text-align: center;
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+    background: linear-gradient(135deg, var(--accent), #c471ed, var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .subtitle {
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.875rem;
+    margin-bottom: 32px;
+  }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+
+  .card-title {
+    font-size: 0.8125rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+
+  textarea {
+    width: 100%;
+    min-height: 120px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    padding: 14px;
+    font-size: 0.9375rem;
+    font-family: inherit;
+    resize: vertical;
+    transition: border-color 0.2s;
+  }
+
+  textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+
+  textarea::placeholder {
+    color: var(--muted);
+  }
+
+  .hint {
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin-top: 8px;
+  }
+
+  .btn-row {
+    display: flex;
+    gap: 12px;
+    margin-top: 16px;
+  }
+
+  button {
+    flex: 1;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 10px;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+  }
+
+  button:active {
+    transform: scale(0.97);
+  }
+
+  .btn-draw {
+    background: linear-gradient(135deg, var(--accent), #c471ed);
+    color: white;
+    font-size: 1.125rem;
+    padding: 16px;
+  }
+
+  .btn-draw:hover {
+    box-shadow: 0 4px 20px rgba(233, 68, 96, 0.35);
+  }
+
+  .btn-draw:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+
+  .btn-secondary {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text);
+  }
+
+  .btn-secondary:hover {
+    background: rgba(255,255,255,0.04);
+  }
+
+  .btn-danger {
+    background: transparent;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+  }
+
+  .btn-danger:hover {
+    background: rgba(233, 68, 96, 0.1);
+  }
+
+  /* list display */
+  .tag-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 16px;
+  }
+
+  .tag {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 0.875rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .tag-remove {
+    cursor: pointer;
+    color: var(--muted);
+    font-size: 1rem;
+    line-height: 1;
+    transition: color 0.15s;
+    background: none;
+    border: none;
+    padding: 0;
+  }
+
+  .tag-remove:hover {
+    color: var(--accent);
+  }
+
+  .count {
+    text-align: right;
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  /* result area */
+  .result-stage {
+    background: var(--card);
+    border: 2px solid var(--border);
+    border-radius: 16px;
+    padding: 48px 24px;
+    text-align: center;
+    margin-bottom: 20px;
+    min-height: 180px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: border-color 0.5s;
+  }
+
+  .result-stage.winner {
+    border-color: var(--gold);
+    box-shadow: 0 0 40px rgba(240, 192, 64, 0.15);
+  }
+
+  .rolling-text {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--accent);
+    transition: all 0.08s;
+  }
+
+  .winner-text {
+    font-size: 3rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #f0c040, #f5a623, #f0c040);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: winnerPulse 0.6s ease-in-out infinite alternate;
+  }
+
+  @keyframes winnerPulse {
+    from { transform: scale(1); }
+    to { transform: scale(1.05); }
+  }
+
+  .placeholder-text {
+    color: var(--muted);
+    font-size: 1rem;
+  }
+
+  /* history */
+  .history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .history-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px;
+    background: var(--bg);
+    border-radius: 8px;
+    font-size: 0.875rem;
+  }
+
+  .history-result {
+    font-weight: 600;
+    color: var(--gold);
+  }
+
+  .history-time {
+    color: var(--muted);
+    font-size: 0.75rem;
+  }
+
+  .empty-history {
+    color: var(--muted);
+    text-align: center;
+    font-size: 0.875rem;
+    padding: 16px;
+  }
+
+  /* confetti */
+  .confetti-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 100;
+  }
+
+  .confetti-piece {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    top: -20px;
+    animation: confettiFall var(--fall-duration) linear forwards;
+  }
+
+  @keyframes confettiFall {
+    0% {
+      transform: translateY(0) rotate(0deg) scale(1);
+      opacity: 1;
+    }
+    100% {
+      transform: translateY(100vh) rotate(var(--spin)) scale(0.3);
+      opacity: 0;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h1>抽签</h1>
+  <p class="subtitle">输入名单，随机抽取</p>
+
+  <!-- result -->
+  <div class="result-stage" id="resultStage">
+    <span class="placeholder-text">点击「开始抽签」</span>
+  </div>
+
+  <!-- input -->
+  <div class="card">
+    <div class="card-title">名单</div>
+    <textarea
+      id="nameInput"
+      placeholder="输入名字，每行一个或用逗号分隔&#10;例如：&#10;张三&#10;李四&#10;王五"
+    ></textarea>
+    <p class="hint">每行一个名字，或者用逗号、中文逗号分隔</p>
+    <div class="count" id="nameCount">共 0 个名字</div>
+
+    <div class="tag-list" id="tagList"></div>
+
+    <div class="btn-row">
+      <button class="btn-danger" id="btnClear" title="清空名单">清空</button>
+      <button class="btn-secondary" id="btnShuffle" title="随机打乱名单">打乱</button>
+    </div>
+  </div>
+
+  <!-- draw button -->
+  <button class="btn-draw" id="btnDraw" disabled>开始抽签</button>
+
+  <!-- history -->
+  <div class="card" style="margin-top: 20px;">
+    <div class="card-title">抽签记录</div>
+    <div id="historyList">
+      <p class="empty-history">暂无记录</p>
+    </div>
+    <button class="btn-danger" id="btnClearHistory" style="margin-top: 16px; display: none;">清空记录</button>
+  </div>
+</div>
+
+<div class="confetti-container" id="confettiContainer"></div>
+
+<script>
+(function() {
+  const invoke = window.__TAURI__.core.invoke;
+
+  const nameInput = document.getElementById('nameInput');
+  const nameCount = document.getElementById('nameCount');
+  const tagList = document.getElementById('tagList');
+  const resultStage = document.getElementById('resultStage');
+  const btnDraw = document.getElementById('btnDraw');
+  const btnClear = document.getElementById('btnClear');
+  const btnShuffle = document.getElementById('btnShuffle');
+  const historyList = document.getElementById('historyList');
+  const btnClearHistory = document.getElementById('btnClearHistory');
+  const confettiContainer = document.getElementById('confettiContainer');
+
+  let names = [];
+  let isRolling = false;
+  let rollTimer = null;
+
+  function parseNames(raw) {
+    const trimmed = raw.trim();
+    if (!trimmed) return [];
+    const parts = trimmed
+      .split(/[\n,，]+/)
+      .map(function(s) { return s.trim(); })
+      .filter(function(s) { return s.length > 0; });
+    // deduplicate while preserving order
+    var seen = {};
+    var result = [];
+    for (var i = 0; i < parts.length; i++) {
+      if (!seen[parts[i]]) {
+        seen[parts[i]] = true;
+        result.push(parts[i]);
+      }
+    }
+    return result;
+  }
+
+  function updateUI() {
+    nameCount.textContent = '共 ' + names.length + ' 个名字';
+    tagList.innerHTML = '';
+    names.forEach(function(name, idx) {
+      var tag = document.createElement('span');
+      tag.className = 'tag';
+      tag.innerHTML = name + '<button class="tag-remove" data-idx="' + idx + '">&times;</button>';
+      tagList.appendChild(tag);
+    });
+    btnDraw.disabled = names.length < 1 || isRolling;
+  }
+
+  function syncTextarea() {
+    nameInput.value = names.join('\n');
+  }
+
+  function setNames(newNames) {
+    names = newNames;
+    syncTextarea();
+    updateUI();
+  }
+
+  function persistConfig() {
+    var historyData = [];
+    var items = historyList.querySelectorAll('.history-item');
+    items.forEach(function(item) {
+      var resultEl = item.querySelector('.history-result');
+      var timeEl = item.querySelector('.history-time');
+      if (resultEl && timeEl) {
+        historyData.push({ winner: resultEl.textContent, time: timeEl.textContent });
+      }
+    });
+    if (historyData.length > 50) historyData = historyData.slice(0, 50);
+    invoke('write_config', { names: names, history: historyData }).catch(function() {});
+  }
+
+  // input events
+  nameInput.addEventListener('input', function() {
+    names = parseNames(nameInput.value);
+    updateUI();
+  });
+  nameInput.addEventListener('blur', function() {
+    persistConfig();
+  });
+
+  // remove tag
+  tagList.addEventListener('click', function(e) {
+    if (e.target.classList.contains('tag-remove')) {
+      var idx = parseInt(e.target.getAttribute('data-idx'));
+      if (!isNaN(idx) && idx >= 0 && idx < names.length) {
+        names.splice(idx, 1);
+        syncTextarea();
+        updateUI();
+        persistConfig();
+      }
+    }
+  });
+
+  // clear
+  btnClear.addEventListener('click', function() {
+    if (names.length === 0) return;
+    setNames([]);
+    resetResult();
+    persistConfig();
+  });
+
+  // shuffle
+  btnShuffle.addEventListener('click', function() {
+    if (names.length < 2) return;
+    var arr = names.slice();
+    for (var i = arr.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var tmp = arr[i];
+      arr[i] = arr[j];
+      arr[j] = tmp;
+    }
+    setNames(arr);
+    persistConfig();
+  });
+
+  function resetResult() {
+    resultStage.classList.remove('winner');
+    resultStage.innerHTML = '<span class="placeholder-text">点击「开始抽签」</span>';
+  }
+
+  function spawnConfetti() {
+    var colors = ['#e94560', '#f0c040', '#533483', '#c471ed', '#00d2ff', '#ff6b6b', '#48dbfb', '#feca57'];
+    var frag = document.createDocumentFragment();
+    for (var i = 0; i < 80; i++) {
+      var piece = document.createElement('div');
+      piece.className = 'confetti-piece';
+      piece.style.left = Math.random() * 100 + '%';
+      piece.style.setProperty('--fall-duration', (Math.random() * 1.5 + 1.5) + 's');
+      piece.style.setProperty('--spin', (Math.random() * 720 - 360) + 'deg');
+      piece.style.animationDelay = Math.random() * 0.5 + 's';
+      piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+      piece.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+      frag.appendChild(piece);
+    }
+    confettiContainer.appendChild(frag);
+    setTimeout(function() {
+      confettiContainer.innerHTML = '';
+    }, 3000);
+  }
+
+  function formatTime() {
+    var now = new Date();
+    var h = String(now.getHours()).padStart(2, '0');
+    var m = String(now.getMinutes()).padStart(2, '0');
+    var s = String(now.getSeconds()).padStart(2, '0');
+    return h + ':' + m + ':' + s;
+  }
+
+  function addHistory(winner) {
+    var item = document.createElement('div');
+    item.className = 'history-item';
+    item.innerHTML = '<span class="history-result">' + escapeHtml(winner) + '</span><span class="history-time">' + formatTime() + '</span>';
+    historyList.insertBefore(item, historyList.firstChild);
+    var empty = historyList.querySelector('.empty-history');
+    if (empty) empty.remove();
+    btnClearHistory.style.display = 'flex';
+    var items = historyList.querySelectorAll('.history-item');
+    if (items.length > 50) {
+      items[items.length - 1].remove();
+    }
+  }
+
+  function escapeHtml(str) {
+    var div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  function renderHistory(entries) {
+    entries.forEach(function(entry) {
+      var item = document.createElement('div');
+      item.className = 'history-item';
+      item.innerHTML = '<span class="history-result">' + escapeHtml(entry.winner) + '</span><span class="history-time">' + entry.time + '</span>';
+      historyList.appendChild(item);
+    });
+    if (entries.length > 0) {
+      var empty = historyList.querySelector('.empty-history');
+      if (empty) empty.remove();
+      btnClearHistory.style.display = 'flex';
+    }
+  }
+
+  btnClearHistory.addEventListener('click', function() {
+    invoke('clear_history').then(function() {
+      historyList.innerHTML = '<p class="empty-history">暂无记录</p>';
+      btnClearHistory.style.display = 'none';
+    });
+  });
+
+  // draw
+  btnDraw.addEventListener('click', function() {
+    if (isRolling || names.length < 1) return;
+
+    isRolling = true;
+    btnDraw.disabled = true;
+    btnDraw.textContent = '抽签中...';
+    resultStage.classList.remove('winner');
+
+    var rollCount = 0;
+    var maxRolls = 20;
+    var interval = 60;
+
+    function roll() {
+      var idx = Math.floor(Math.random() * names.length);
+      resultStage.innerHTML = '<span class="rolling-text">' + escapeHtml(names[idx]) + '</span>';
+      rollCount++;
+
+      if (rollCount >= maxRolls) {
+        var winnerIdx = Math.floor(Math.random() * names.length);
+        var winner = names[winnerIdx];
+        var slowdownCount = 0;
+        var slowdownMax = 8;
+        var slowInterval = 100;
+
+        function slowdown() {
+          var tmpIdx = Math.floor(Math.random() * names.length);
+          resultStage.innerHTML = '<span class="rolling-text">' + escapeHtml(names[tmpIdx]) + '</span>';
+          slowdownCount++;
+          slowInterval += 50;
+
+          if (slowdownCount >= slowdownMax) {
+            resultStage.innerHTML = '<span class="winner-text">' + escapeHtml(winner) + '</span>';
+            resultStage.classList.add('winner');
+            isRolling = false;
+            btnDraw.disabled = false;
+            btnDraw.textContent = '开始抽签';
+            addHistory(winner);
+            names.splice(winnerIdx, 1);
+            syncTextarea();
+            updateUI();
+            persistConfig();
+            spawnConfetti();
+          } else {
+            rollTimer = setTimeout(slowdown, slowInterval);
+          }
+        }
+
+        rollTimer = setTimeout(slowdown, interval);
+      } else {
+        interval += 5;
+        rollTimer = setTimeout(roll, interval);
+      }
+    }
+
+    roll();
+  });
+
+  // stop rolling on page hide
+  document.addEventListener('visibilitychange', function() {
+    if (document.hidden && rollTimer) {
+      clearTimeout(rollTimer);
+    }
+  });
+
+  // ---- startup: load config from Rust backend ----
+  invoke('read_config').then(function(config) {
+    if (config.names && config.names.length > 0) {
+      setNames(config.names);
+    }
+    if (config.history && config.history.length > 0) {
+      renderHistory(config.history);
+    }
+  }).catch(function() {
+    // running outside Tauri (plain browser) — start empty
+  });
+})();
+</script>
+</body>
+</html>
