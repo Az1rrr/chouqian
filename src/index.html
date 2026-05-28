@@ -123,10 +123,13 @@
   }
 
   .btn-draw {
+    display: block;
+    width: 100%;
     background: linear-gradient(135deg, var(--accent), #c471ed);
     color: white;
     font-size: 1.125rem;
     padding: 16px;
+    margin-bottom: 8px;
   }
 
   .btn-draw:hover {
@@ -315,7 +318,7 @@
 <body>
 
 <div class="container">
-  <h1>抽签</h1>
+  <button class="btn-draw" id="btnDraw" disabled>开始抽签</button>
   <p class="subtitle">输入名单，随机抽取</p>
 
   <!-- result -->
@@ -340,9 +343,6 @@
       <button class="btn-secondary" id="btnShuffle" title="随机打乱名单">打乱</button>
     </div>
   </div>
-
-  <!-- draw button -->
-  <button class="btn-draw" id="btnDraw" disabled>开始抽签</button>
 
   <!-- history -->
   <div class="card" style="margin-top: 20px;">
@@ -586,8 +586,6 @@
             btnDraw.disabled = false;
             btnDraw.textContent = '开始抽签';
             addHistory(winner);
-            names.splice(winnerIdx, 1);
-            syncTextarea();
             updateUI();
             persistConfig();
             spawnConfetti();
