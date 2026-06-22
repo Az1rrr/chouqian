@@ -1,7 +1,37 @@
-# Tauri + Vanilla
+# 抽签
 
-This template should help get you started developing with Tauri in vanilla HTML, CSS and Javascript.
+简单好用的桌面抽签工具，基于 [Tauri](https://tauri.app/) 构建，支持 Windows。
 
-## Recommended IDE Setup
+## 简介
 
-- [VS Code](https://code.visualstudio.com/) + [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) + [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer)
+输入一组名字，一键随机抽取。适合课堂点名、活动抽奖、分组随机选人等场景。名单会自动保存，关掉重开不会丢失，抽签记录也会持久保留。
+
+## 特性
+
+- **随机抽取** — 点击按钮滚动名字，逐渐减速后揭晓结果，带彩纸特效
+- **中签保留名单** — 抽中的人不会从名单移除，可反复抽签
+- **一键导入** — 每行一个名字，或用逗号、中文逗号分隔，粘贴即可
+- **手动管理名单** — 支持按行删除、一键清空、随机打乱
+- **本地持久化** — 名单和抽签记录自动保存，重启仍在
+- **历史记录** — 每次抽签结果带时间戳，支持翻阅和清空
+
+## 使用
+
+1. 打开应用，在名单输入框中输入名字（每行一个，或用逗号分隔）
+2. 点击顶部 **「开始抽签」** 按钮
+3. 名字滚动数秒后揭晓中签者，伴有彩纸特效
+4. 记录自动出现在下方「抽签记录」中
+5. 点击 `×` 单独删除名字，或使用「清空」「打乱」按钮批量操作
+
+## 开发
+
+```bash
+npm install
+npm run tauri dev
+```
+
+构建 Windows 安装包：
+
+```bash
+npm run tauri build -- --target x86_64-pc-windows-msvc --bundles nsis
+```
